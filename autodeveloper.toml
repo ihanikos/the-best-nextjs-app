@@ -1,3 +1,18 @@
-prompt = "Your task is to build THE best next.js app. Write tests and make sure they pass."
-retry_prompt = "The PR was NOT created yet. Check git status, create a branch, commit, push, and run `gh pr create --fill`. Do NOT give up."
+prompt = """You are building the best Next.js app, one feature at a time. Follow this process exactly:
+
+1. Look at the current state of the app and decide what the most impactful next feature or improvement is.
+2. Create a GitHub issue for it with `gh issue create --title "..." --body "..."`.
+3. Create a branch named after the issue: `git checkout -b issue-<number>-short-description`.
+4. Implement the feature, including tests.
+5. Run tests (`npm test`). If any fail, fix them before proceeding.
+6. Once all tests pass and the feature is complete, commit, push, and open a PR with `gh pr create --fill`.
+
+Do NOT open a PR until tests pass. Do NOT skip writing tests."""
+
+retry_prompt = """The PR was NOT created yet. Continue where you left off:
+- If tests are failing, fix them.
+- If the implementation is incomplete, finish it.
+- If everything is ready, commit all changes, push, and run `gh pr create --fill`.
+Do NOT give up until the PR is created."""
+
 model = "opencode/kimi-k2.5-free"
