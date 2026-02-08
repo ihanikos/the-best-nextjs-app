@@ -20,6 +20,23 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Testing
+
+The project uses Jest and React Testing Library for automated testing.
+
+```bash
+# Run tests once
+npm test
+
+# Run tests in watch mode
+npm run test:watch
+
+# Run tests with coverage report
+npm run test:coverage
+```
+
+Test files are located in the `__tests__` directory and follow the pattern `*.test.tsx` or `*.test.ts`.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:
@@ -28,6 +45,27 @@ To learn more about Next.js, take a look at the following resources:
 - [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
 You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+
+## Testing
+
+The project uses Jest and React Testing Library for testing.
+
+Run all tests:
+```bash
+npm test
+```
+
+Run tests in watch mode:
+```bash
+npm run test:watch
+```
+
+Run tests with coverage:
+```bash
+npm run test:coverage
+```
+
+Test files should be placed in `__tests__` directories and follow the pattern `*.test.tsx` or `*.spec.tsx`.
 
 ## Deploy on Vercel
 
