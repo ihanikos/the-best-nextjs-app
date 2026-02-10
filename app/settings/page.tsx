@@ -7,7 +7,6 @@ import {
   Lock,
   Bell,
   Shield,
-  Globe,
   Eye,
   EyeOff,
   Save,
