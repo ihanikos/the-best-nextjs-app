@@ -27,6 +27,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useAuth } from "@/lib/auth";
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -42,6 +43,7 @@ interface SidebarProps {
 export function Sidebar({ className }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
   const pathname = usePathname();
+  const { user, logout } = useAuth();
 
   return (
     <TooltipProvider delayDuration={0}>
@@ -152,8 +154,10 @@ export function Sidebar({ className }: SidebarProps) {
             <TooltipTrigger asChild>
               <div className="flex items-center gap-3 overflow-hidden">
                 <Avatar className="h-10 w-10 shrink-0 ring-2 ring-primary/20">
-                  <AvatarImage src="https://github.com/shadcn.png" />
-                  <AvatarFallback>CN</AvatarFallback>
+                  <AvatarImage src={user?.avatar || ""} />
+                  <AvatarFallback>
+                    {user?.name?.split(" ").map((n) => n[0]).join("") || "U"}
+                  </AvatarFallback>
                 </Avatar>
                 <AnimatePresence mode="popLayout">
                   {!collapsed && (
@@ -163,15 +167,23 @@ export function Sidebar({ className }: SidebarProps) {
                       exit={{ opacity: 0, x: -10 }}
                       className="min-w-0 flex-1"
                     >
-                      <p className="truncate text-sm font-medium">Alex Chen</p>
+                      <p className="truncate text-sm font-medium">
+                        {user?.name || "User"}
+                      </p>
                       <p className="truncate text-xs text-muted-foreground">
-                        alex@nexus.dev
+                        {user?.email || ""}
                       </p>
                     </motion.div>
                   )}
                 </AnimatePresence>
                 {!collapsed && (
-                  <Button variant="ghost" size="icon" className="shrink-0">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="shrink-0"
+                    onClick={logout}
+                    title="Logout"
+                  >
                     <LogOut className="h-4 w-4 text-muted-foreground" />
                   </Button>
                 )}
@@ -180,9 +192,9 @@ export function Sidebar({ className }: SidebarProps) {
             {collapsed && (
               <TooltipContent side="right">
                 <div>
-                  <p className="font-medium">Alex Chen</p>
+                  <p className="font-medium">{user?.name || "User"}</p>
                   <p className="text-xs text-muted-foreground">
-                    alex@nexus.dev
+                    {user?.email || ""}
                   </p>
                 </div>
               </TooltipContent>
