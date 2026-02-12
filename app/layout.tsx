@@ -5,6 +5,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { AuthProvider } from "@/lib/auth";
+import { NotificationProvider } from "@/lib/notifications";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -45,9 +46,11 @@ export default function RootLayout({
           disableTransitionOnChange={false}
         >
           <AuthProvider>
-            {children}
-            <Toaster />
-            <Sonner position="bottom-right" richColors />
+            <NotificationProvider>
+              {children}
+              <Toaster />
+              <Sonner position="bottom-right" richColors />
+            </NotificationProvider>
           </AuthProvider>
         </ThemeProvider>
       </body>
