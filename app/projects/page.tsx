@@ -43,12 +43,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useProjects } from "@/lib/projects/use-projects";
-import { Project } from "@/lib/projects/types";
+import { Project, ProjectFilters } from "@/lib/projects/types";
 import { CreateProjectDialog } from "./create-project-dialog";
 import { EditProjectDialog } from "./edit-project-dialog";
 import { ProjectDetailDialog } from "./project-detail-dialog";
 import { getStatusColor, getStatusBadgeVariant } from "@/lib/projects/data";
 import { toast } from "sonner";
+import { useNotifications } from "@/lib/notifications";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -77,6 +78,7 @@ export default function ProjectsPage() {
     deleteProject,
     availableTeamMembers,
   } = useProjects();
+  const { addNotification } = useNotifications();
 
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
@@ -89,9 +91,41 @@ export default function ProjectsPage() {
     ? Math.round(projects.reduce((acc, p) => acc + p.progress, 0) / projects.length)
     : 0;
 
+  const handleCreateProject = (data: Parameters<typeof createProject>[0]) => {
+    createProject(data);
+    addNotification({
+      title: "Project Created",
+      message: `"${data.name}" has been created successfully`,
+      type: "success",
+      link: "/projects",
+      metadata: { action: "project_created" },
+    });
+    toast.success("Project created successfully");
+    setIsCreateOpen(false);
+  };
+
+  const handleUpdateProject = (id: string, data: Parameters<typeof updateProject>[1]) => {
+    updateProject(id, data);
+    addNotification({
+      title: "Project Updated",
+      message: `"${data.name}" has been updated`,
+      type: "info",
+      link: "/projects",
+      metadata: { action: "project_updated", projectId: id },
+    });
+    toast.success("Project updated successfully");
+    setEditingProject(null);
+  };
+
   const handleDelete = (project: Project) => {
     if (confirm(`Are you sure you want to delete "${project.name}"?`)) {
       deleteProject(project.id);
+      addNotification({
+        title: "Project Deleted",
+        message: `"${project.name}" has been deleted`,
+        type: "warning",
+        metadata: { action: "project_deleted", projectId: project.id },
+      });
       toast.success("Project deleted successfully");
     }
   };
@@ -364,7 +398,7 @@ export default function ProjectsPage() {
       <CreateProjectDialog
         open={isCreateOpen}
         onOpenChange={setIsCreateOpen}
-        onSubmit={createProject}
+        onSubmit={handleCreateProject}
         teamMembers={availableTeamMembers}
       />
 
@@ -373,11 +407,7 @@ export default function ProjectsPage() {
           open={!!editingProject}
           onOpenChange={(open) => !open && setEditingProject(null)}
           project={editingProject}
-          onSubmit={(data) => {
-            updateProject(editingProject.id, data);
-            setEditingProject(null);
-            toast.success("Project updated successfully");
-          }}
+          onSubmit={(data) => handleUpdateProject(editingProject.id, data)}
           teamMembers={availableTeamMembers}
         />
       )}

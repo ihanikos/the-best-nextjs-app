@@ -29,12 +29,14 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useAuth } from "@/lib/auth";
+import { useNotifications } from "@/lib/notifications";
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { name: "Analytics", href: "/analytics", icon: BarChart3 },
   { name: "Projects", href: "/projects", icon: FolderKanban },
   { name: "Team", href: "/team", icon: Users },
+  { name: "Notifications", href: "/notifications", icon: Bell },
   { name: "Settings", href: "/settings", icon: Settings },
 ];
 
@@ -46,6 +48,7 @@ export function Sidebar({ className }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
   const pathname = usePathname();
   const { user, logout } = useAuth();
+  const { unreadCount } = useNotifications();
 
   return (
     <TooltipProvider delayDuration={0}>
@@ -136,6 +139,11 @@ export function Sidebar({ className }: SidebarProps) {
                           layoutId="activeIndicator"
                           className="ml-auto h-1.5 w-1.5 rounded-full bg-primary-foreground"
                         />
+                      )}
+                      {!isActive && item.name === "Notifications" && unreadCount > 0 && !collapsed && (
+                        <Badge variant="default" className="ml-auto text-[10px] px-1.5 py-0">
+                          {unreadCount}
+                        </Badge>
                       )}
                     </motion.div>
                   </Link>
