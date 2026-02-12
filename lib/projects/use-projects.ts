@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { Project, ProjectFilters, Task } from "./types";
+import { Project, ProjectFilters, Task, TaskStatus } from "./types";
 import { initialProjects, availableTeamMembers, filterProjects } from "./data";
 
 export function useProjects() {
@@ -47,7 +47,7 @@ export function useProjects() {
     setProjects((prev) => prev.filter((p) => p.id !== id));
   }, []);
 
-  const addTask = useCallback((projectId: string, taskTitle: string) => {
+  const addTask = useCallback((projectId: string, taskTitle: string, status: TaskStatus = "todo") => {
     setProjects((prev) =>
       prev.map((p) =>
         p.id === projectId
@@ -58,9 +58,40 @@ export function useProjects() {
                 {
                   id: Math.random().toString(36).substr(2, 9),
                   title: taskTitle,
-                  completed: false,
+                  completed: status === "done",
+                  status,
                 },
               ],
+              updatedAt: new Date().toISOString().split("T")[0],
+            }
+          : p
+      )
+    );
+  }, []);
+
+  const updateTask = useCallback((projectId: string, taskId: string, updates: Partial<Task>) => {
+    setProjects((prev) =>
+      prev.map((p) =>
+        p.id === projectId
+          ? {
+              ...p,
+              tasks: p.tasks.map((t) =>
+                t.id === taskId ? { ...t, ...updates } : t
+              ),
+              updatedAt: new Date().toISOString().split("T")[0],
+            }
+          : p
+      )
+    );
+  }, []);
+
+  const deleteTask = useCallback((projectId: string, taskId: string) => {
+    setProjects((prev) =>
+      prev.map((p) =>
+        p.id === projectId
+          ? {
+              ...p,
+              tasks: p.tasks.filter((t) => t.id !== taskId),
               updatedAt: new Date().toISOString().split("T")[0],
             }
           : p
@@ -93,6 +124,8 @@ export function useProjects() {
     updateProject,
     deleteProject,
     addTask,
+    updateTask,
+    deleteTask,
     toggleTask,
     availableTeamMembers,
   };

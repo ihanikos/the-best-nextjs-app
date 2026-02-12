@@ -20,6 +20,8 @@ const customJestConfig = {
     '!**/*.d.ts',
     '!**/node_modules/**',
   ],
+  maxWorkers: 1,
+  workerIdleMemoryLimit: '512MB',
 }
 
 export default createJestConfig(customJestConfig)
