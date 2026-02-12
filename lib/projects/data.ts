@@ -1,4 +1,4 @@
-import { Project, ProjectFilters } from "./types";
+import { Project, ProjectFilters, TaskStatus, Task } from "./types";
 
 export const initialProjects: Project[] = [
   {
@@ -23,10 +23,10 @@ export const initialProjects: Project[] = [
       { id: "2", name: "Sarah Johnson", email: "sarah@nexus.dev", role: "Senior Developer", avatar: "SJ" },
     ],
     tasks: [
-      { id: "1", title: "Design mockups", completed: true },
-      { id: "2", title: "Frontend development", completed: true },
-      { id: "3", title: "Backend integration", completed: false, assignedTo: "2" },
-      { id: "4", title: "Content migration", completed: false },
+      { id: "1", title: "Design mockups", completed: true, status: "done", priority: "high" },
+      { id: "2", title: "Frontend development", completed: true, status: "done", priority: "medium" },
+      { id: "3", title: "Backend integration", completed: false, assignedTo: "2", status: "in-progress", priority: "high" },
+      { id: "4", title: "Content migration", completed: false, status: "todo", priority: "low" },
     ],
   },
   {
@@ -50,10 +50,10 @@ export const initialProjects: Project[] = [
       { id: "5", name: "Tom Wilson", email: "tom@nexus.dev", role: "Backend Developer", avatar: "TW" },
     ],
     tasks: [
-      { id: "1", title: "UI/UX design", completed: true },
-      { id: "2", title: "API development", completed: true, assignedTo: "5" },
-      { id: "3", title: "App development", completed: false, assignedTo: "2" },
-      { id: "4", title: "Testing", completed: false },
+      { id: "1", title: "UI/UX design", completed: true, status: "done", priority: "high" },
+      { id: "2", title: "API development", completed: true, assignedTo: "5", status: "done", priority: "high" },
+      { id: "3", title: "App development", completed: false, assignedTo: "2", status: "in-progress", priority: "medium" },
+      { id: "4", title: "Testing", completed: false, status: "todo", priority: "low" },
     ],
   },
   {
@@ -77,10 +77,10 @@ export const initialProjects: Project[] = [
       { id: "6", name: "Jessica Brown", email: "jessica@nexus.dev", role: "Data Analyst", avatar: "JB" },
     ],
     tasks: [
-      { id: "1", title: "Strategy planning", completed: true },
-      { id: "2", title: "Content creation", completed: true },
-      { id: "3", title: "Campaign execution", completed: true },
-      { id: "4", title: "Performance analysis", completed: true, assignedTo: "6" },
+      { id: "1", title: "Strategy planning", completed: true, status: "done", priority: "medium" },
+      { id: "2", title: "Content creation", completed: true, status: "done", priority: "low" },
+      { id: "3", title: "Campaign execution", completed: true, status: "done", priority: "high" },
+      { id: "4", title: "Performance analysis", completed: true, assignedTo: "6", status: "done", priority: "low" },
     ],
   },
   {
@@ -104,10 +104,10 @@ export const initialProjects: Project[] = [
       { id: "6", name: "Jessica Brown", email: "jessica@nexus.dev", role: "Data Analyst", avatar: "JB" },
     ],
     tasks: [
-      { id: "1", title: "Data audit", completed: true },
-      { id: "2", title: "Schema design", completed: true },
-      { id: "3", title: "Migration scripts", completed: false },
-      { id: "4", title: "Testing", completed: false },
+      { id: "1", title: "Data audit", completed: true, status: "done", priority: "high" },
+      { id: "2", title: "Schema design", completed: true, status: "done", priority: "medium" },
+      { id: "3", title: "Migration scripts", completed: false, status: "in-progress", priority: "high" },
+      { id: "4", title: "Testing", completed: false, status: "todo", priority: "medium" },
     ],
   },
   {
@@ -132,10 +132,10 @@ export const initialProjects: Project[] = [
       { id: "3", name: "Mike Williams", email: "mike@nexus.dev", role: "UX Designer", avatar: "MW" },
     ],
     tasks: [
-      { id: "1", title: "Requirements gathering", completed: true },
-      { id: "2", title: "Development", completed: true },
-      { id: "3", title: "Testing", completed: true },
-      { id: "4", title: "Deployment", completed: true },
+      { id: "1", title: "Requirements gathering", completed: true, status: "done", priority: "medium" },
+      { id: "2", title: "Development", completed: true, status: "done", priority: "high" },
+      { id: "3", title: "Testing", completed: true, status: "done", priority: "high" },
+      { id: "4", title: "Deployment", completed: true, status: "done", priority: "high" },
     ],
   },
 ];
@@ -217,4 +217,43 @@ export function getStatusBadgeVariant(status: Project["status"]): "default" | "s
     default:
       return "secondary";
   }
+}
+
+export const KANBAN_COLUMNS: { id: TaskStatus; title: string; color: string }[] = [
+  { id: "todo", title: "To Do", color: "bg-slate-500" },
+  { id: "in-progress", title: "In Progress", color: "bg-blue-500" },
+  { id: "in-review", title: "In Review", color: "bg-amber-500" },
+  { id: "done", title: "Done", color: "bg-emerald-500" },
+];
+
+export function getTaskStatusColor(status: TaskStatus): string {
+  switch (status) {
+    case "todo":
+      return "bg-slate-500";
+    case "in-progress":
+      return "bg-blue-500";
+    case "in-review":
+      return "bg-amber-500";
+    case "done":
+      return "bg-emerald-500";
+    default:
+      return "bg-slate-500";
+  }
+}
+
+export function getTaskPriorityColor(priority: Task["priority"]): string {
+  switch (priority) {
+    case "high":
+      return "bg-red-500";
+    case "medium":
+      return "bg-amber-500";
+    case "low":
+      return "bg-emerald-500";
+    default:
+      return "bg-slate-500";
+  }
+}
+
+export function getTasksByStatus(tasks: Task[], status: TaskStatus): Task[] {
+  return tasks.filter((task) => task.status === status);
 }

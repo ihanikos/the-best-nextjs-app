@@ -20,11 +20,16 @@ export interface TeamMember {
   avatar: string;
 }
 
+export type TaskStatus = "todo" | "in-progress" | "in-review" | "done";
+
 export interface Task {
   id: string;
   title: string;
   completed: boolean;
   assignedTo?: string;
+  status: TaskStatus;
+  priority?: "low" | "medium" | "high";
+  dueDate?: string;
 }
 
 export interface ProjectFilters {

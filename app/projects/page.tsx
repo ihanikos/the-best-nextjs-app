@@ -15,6 +15,8 @@ import {
   Clock,
   Trash2,
   Edit,
+  LayoutGrid,
+  List,
 } from "lucide-react";
 import {
   Card,
@@ -47,9 +49,11 @@ import { Project, ProjectFilters } from "@/lib/projects/types";
 import { CreateProjectDialog } from "./create-project-dialog";
 import { EditProjectDialog } from "./edit-project-dialog";
 import { ProjectDetailDialog } from "./project-detail-dialog";
+import { KanbanBoard } from "@/components/kanban-board";
 import { getStatusColor, getStatusBadgeVariant } from "@/lib/projects/data";
 import { toast } from "sonner";
 import { useNotifications } from "@/lib/notifications";
+import { Task, TaskStatus } from "@/lib/projects/types";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -76,6 +80,9 @@ export default function ProjectsPage() {
     createProject,
     updateProject,
     deleteProject,
+    updateTask,
+    deleteTask,
+    addTask,
     availableTeamMembers,
   } = useProjects();
   const { addNotification } = useNotifications();
@@ -83,6 +90,8 @@ export default function ProjectsPage() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [viewingProject, setViewingProject] = useState<Project | null>(null);
+  const [viewMode, setViewMode] = useState<"list" | "kanban">("list");
+  const [kanbanProjectId, setKanbanProjectId] = useState<string | null>(null);
 
   const activeProjects = projects.filter((p) => p.status === "active").length;
   const completedProjects = projects.filter((p) => p.status === "completed").length;
@@ -136,6 +145,50 @@ export default function ProjectsPage() {
       day: "numeric",
       year: "numeric",
     });
+  };
+
+  const kanbanProject = kanbanProjectId
+    ? projects.find((p) => p.id === kanbanProjectId)
+    : null;
+
+  const handleUpdateTask = (taskId: string, updates: Partial<Task>) => {
+    if (!kanbanProjectId) return;
+    updateTask(kanbanProjectId, taskId, updates);
+    if (updates.status || updates.completed !== undefined) {
+      addNotification({
+        title: "Task Updated",
+        message: `Task status updated`,
+        type: "info",
+        metadata: { action: "task_updated", projectId: kanbanProjectId },
+      });
+    }
+  };
+
+  const handleDeleteTask = (taskId: string) => {
+    if (!kanbanProjectId) return;
+    deleteTask(kanbanProjectId, taskId);
+    addNotification({
+      title: "Task Deleted",
+      message: "Task has been deleted",
+      type: "warning",
+      metadata: { action: "task_deleted", projectId: kanbanProjectId },
+    });
+    toast.success("Task deleted successfully");
+  };
+
+  const handleCreateTask = (status: TaskStatus) => {
+    if (!kanbanProjectId) return;
+    const title = prompt(`Enter task title for "${status.replace("-", " ")}" column:`);
+    if (title && title.trim()) {
+      addTask(kanbanProjectId, title.trim(), status);
+      addNotification({
+        title: "Task Created",
+        message: `New task added to ${status.replace("-", " ")}`,
+        type: "success",
+        metadata: { action: "task_created", projectId: kanbanProjectId },
+      });
+      toast.success("Task created successfully");
+    }
   };
 
   return (
@@ -246,6 +299,49 @@ export default function ProjectsPage() {
           />
         </div>
         <div className="flex gap-2">
+          {/* View Mode Toggle */}
+          {viewMode === "kanban" && kanbanProject && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setViewMode("list");
+                setKanbanProjectId(null);
+              }}
+            >
+              <List className="mr-2 h-4 w-4" />
+              Back to Projects
+            </Button>
+          )}
+          <div className="flex border rounded-md">
+            <Button
+              variant={viewMode === "list" ? "secondary" : "ghost"}
+              size="sm"
+              className="rounded-r-none"
+              onClick={() => {
+                setViewMode("list");
+                setKanbanProjectId(null);
+              }}
+            >
+              <List className="mr-2 h-4 w-4" />
+              List
+            </Button>
+            <Button
+              variant={viewMode === "kanban" ? "secondary" : "ghost"}
+              size="sm"
+              className="rounded-l-none"
+              disabled={viewMode === "kanban" && !kanbanProject}
+              onClick={() => {
+                if (projects.length > 0 && !kanbanProjectId) {
+                  setKanbanProjectId(projects[0].id);
+                }
+                setViewMode("kanban");
+              }}
+            >
+              <LayoutGrid className="mr-2 h-4 w-4" />
+              Board
+            </Button>
+          </div>
           <Select
             value={filters.status || "all"}
             onValueChange={(value) =>
@@ -284,6 +380,46 @@ export default function ProjectsPage() {
         </div>
       </motion.div>
 
+      {/* View Mode Content */}
+      {viewMode === "kanban" && kanbanProject ? (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="space-y-4"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-xl font-semibold">{kanbanProject.name}</h2>
+              <p className="text-sm text-muted-foreground">
+                Drag and drop tasks to update their status
+              </p>
+            </div>
+            <Select
+              value={kanbanProjectId || ""}
+              onValueChange={(value) => setKanbanProjectId(value)}
+            >
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="Select project" />
+              </SelectTrigger>
+              <SelectContent>
+                {projects.map((project) => (
+                  <SelectItem key={project.id} value={project.id}>
+                    {project.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <KanbanBoard
+            tasks={kanbanProject.tasks}
+            teamMembers={kanbanProject.members}
+            onUpdateTask={handleUpdateTask}
+            onDeleteTask={handleDeleteTask}
+            onCreateTask={handleCreateTask}
+          />
+        </motion.div>
+      ) : (
+        <>
       {/* Projects Grid */}
       <motion.div
         variants={containerVariants}
@@ -312,6 +448,10 @@ export default function ProjectsPage() {
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setViewingProject(project); }}>
                           View Details
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setKanbanProjectId(project.id); setViewMode("kanban"); }}>
+                          <LayoutGrid className="mr-2 h-4 w-4" />
+                          Open Board View
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setEditingProject(project); }}>
                           <Edit className="mr-2 h-4 w-4" />
@@ -392,6 +532,8 @@ export default function ProjectsPage() {
             Create Project
           </Button>
         </motion.div>
+      )}
+        </>
       )}
 
       {/* Dialogs */}
