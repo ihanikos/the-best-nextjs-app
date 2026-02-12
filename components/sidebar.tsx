@@ -9,6 +9,7 @@ import {
   Users,
   Settings,
   BarChart3,
+  FolderKanban,
   Bell,
   Menu,
   X,
@@ -32,6 +33,7 @@ import { useAuth } from "@/lib/auth";
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { name: "Analytics", href: "/analytics", icon: BarChart3 },
+  { name: "Projects", href: "/projects", icon: FolderKanban },
   { name: "Team", href: "/team", icon: Users },
   { name: "Settings", href: "/settings", icon: Settings },
 ];
