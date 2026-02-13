@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { motion } from "framer-motion";
 import {
   Plus,
@@ -41,8 +42,21 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { AddTeamMemberDialog } from "./add-team-member-dialog";
 
-const teamMembers = [
+export interface TeamMember {
+  id: number;
+  name: string;
+  email: string;
+  role: string;
+  status: "active" | "offline";
+  avatar: string;
+  lastActive: string;
+  location: string;
+  projects: number;
+}
+
+const initialTeamMembers: TeamMember[] = [
   {
     id: 1,
     name: "Alex Chen",
@@ -112,6 +126,23 @@ const teamMembers = [
 ];
 
 export default function TeamPage() {
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>(initialTeamMembers);
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+
+  const handleAddMember = (
+    newMember: Omit<TeamMember, "id" | "lastActive" | "projects">
+  ) => {
+    const member: TeamMember = {
+      ...newMember,
+      id: Math.max(...teamMembers.map((m) => m.id), 0) + 1,
+      lastActive: "Just now",
+      projects: 0,
+    };
+    setTeamMembers((prev) => [...prev, member]);
+  };
+
+  const activeMembers = teamMembers.filter((m) => m.status === "active").length;
+
   return (
     <div className="space-y-8 p-8">
       <div className="flex items-center justify-between">
@@ -121,7 +152,7 @@ export default function TeamPage() {
             Manage your team members and their roles
           </p>
         </div>
-        <Button className="gap-2">
+        <Button className="gap-2" onClick={() => setIsAddDialogOpen(true)}>
           <Plus className="h-4 w-4" />
           Add Member
         </Button>
@@ -137,7 +168,7 @@ export default function TeamPage() {
               <CardTitle className="text-sm font-medium">Total Members</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">24</div>
+              <div className="text-2xl font-bold">{teamMembers.length}</div>
               <p className="text-xs text-muted-foreground">+3 this month</p>
             </CardContent>
           </Card>
@@ -152,8 +183,10 @@ export default function TeamPage() {
               <CardTitle className="text-sm font-medium">Active Now</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">18</div>
-              <p className="text-xs text-muted-foreground">75% of team</p>
+              <div className="text-2xl font-bold">{activeMembers}</div>
+              <p className="text-xs text-muted-foreground">
+                {Math.round((activeMembers / teamMembers.length) * 100)}% of team
+              </p>
             </CardContent>
           </Card>
         </motion.div>
@@ -305,6 +338,12 @@ export default function TeamPage() {
           </CardContent>
         </Card>
       </motion.div>
+
+      <AddTeamMemberDialog
+        open={isAddDialogOpen}
+        onOpenChange={setIsAddDialogOpen}
+        onSubmit={handleAddMember}
+      />
     </div>
   );
 }
