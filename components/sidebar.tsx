@@ -30,6 +30,8 @@ import {
 } from "@/components/ui/tooltip";
 import { useAuth } from "@/lib/auth";
 import { useNotifications } from "@/lib/notifications";
+import { Kbd } from "@/components/ui/kbd";
+import { useCommandPalette } from "@/lib/hooks/use-command-palette";
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -155,6 +157,35 @@ export function Sidebar({ className }: SidebarProps) {
             );
           })}
         </nav>
+
+        <Separator />
+
+        {/* Command Palette Hint */}
+        <div className="px-4 py-3">
+          <AnimatePresence mode="popLayout">
+            {!collapsed && (
+              <motion.button
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                onClick={() => {
+                  // Open command palette via keyboard event
+                  const event = new KeyboardEvent("keydown", {
+                    key: "k",
+                    metaKey: true,
+                  })
+                  window.dispatchEvent(event)
+                }}
+                className="flex w-full items-center justify-between rounded-md border bg-muted/50 px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted"
+              >
+                <span>Search</span>
+                <Kbd variant="outline" size="sm">
+                  ⌘K
+                </Kbd>
+              </motion.button>
+            )}
+          </AnimatePresence>
+        </div>
 
         <Separator />
 
