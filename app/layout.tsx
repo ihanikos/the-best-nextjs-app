@@ -6,6 +6,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { AuthProvider } from "@/lib/auth";
 import { NotificationProvider } from "@/lib/notifications";
+import { CommandPaletteProvider } from "@/components/command-palette-provider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -47,9 +48,11 @@ export default function RootLayout({
         >
           <AuthProvider>
             <NotificationProvider>
-              {children}
-              <Toaster />
-              <Sonner position="bottom-right" richColors />
+              <CommandPaletteProvider>
+                {children}
+                <Toaster />
+                <Sonner position="bottom-right" richColors />
+              </CommandPaletteProvider>
             </NotificationProvider>
           </AuthProvider>
         </ThemeProvider>
