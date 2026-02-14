@@ -1,3 +1,11 @@
+export interface Milestone {
+  id: string;
+  title: string;
+  description?: string;
+  dueDate: string;
+  completed: boolean;
+}
+
 export interface Project {
   id: string;
   name: string;
@@ -5,19 +13,28 @@ export interface Project {
   status: "active" | "on-hold" | "completed" | "archived";
   progress: number;
   dueDate: string;
-  createdAt: string;
-  updatedAt: string;
-  owner: TeamMember;
+  startDate?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  owner?: TeamMember;
   members: TeamMember[];
   tasks: Task[];
+  milestones?: Milestone[];
+  priority?: "low" | "medium" | "high";
+  budget?: number;
+  tags?: string[];
 }
 
 export interface TeamMember {
-  id: string;
+  id: string | number;
   name: string;
   email: string;
   role: string;
   avatar: string;
+  status?: "active" | "offline";
+  lastActive?: string;
+  location?: string;
+  projects?: number;
 }
 
 export type TaskStatus = "todo" | "in-progress" | "in-review" | "done";
