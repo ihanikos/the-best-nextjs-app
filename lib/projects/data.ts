@@ -23,10 +23,10 @@ export const initialProjects: Project[] = [
       { id: "2", name: "Sarah Johnson", email: "sarah@nexus.dev", role: "Senior Developer", avatar: "SJ" },
     ],
     tasks: [
-      { id: "1", title: "Design mockups", completed: true, status: "done", priority: "high" },
-      { id: "2", title: "Frontend development", completed: true, status: "done", priority: "medium" },
-      { id: "3", title: "Backend integration", completed: false, assignedTo: "2", status: "in-progress", priority: "high" },
-      { id: "4", title: "Content migration", completed: false, status: "todo", priority: "low" },
+      { id: "1", title: "Design mockups", completed: true, status: "done", priority: "high", dueDate: "2026-03-01" },
+      { id: "2", title: "Frontend development", completed: true, status: "done", priority: "medium", dueDate: "2026-03-05" },
+      { id: "3", title: "Backend integration", completed: false, assignedTo: "2", status: "in-progress", priority: "high", dueDate: "2026-03-10" },
+      { id: "4", title: "Content migration", completed: false, status: "todo", priority: "low", dueDate: "2026-03-12" },
     ],
   },
   {
@@ -50,10 +50,10 @@ export const initialProjects: Project[] = [
       { id: "5", name: "Tom Wilson", email: "tom@nexus.dev", role: "Backend Developer", avatar: "TW" },
     ],
     tasks: [
-      { id: "1", title: "UI/UX design", completed: true, status: "done", priority: "high" },
-      { id: "2", title: "API development", completed: true, assignedTo: "5", status: "done", priority: "high" },
-      { id: "3", title: "App development", completed: false, assignedTo: "2", status: "in-progress", priority: "medium" },
-      { id: "4", title: "Testing", completed: false, status: "todo", priority: "low" },
+      { id: "1", title: "UI/UX design", completed: true, status: "done", priority: "high", dueDate: "2026-03-15" },
+      { id: "2", title: "API development", completed: true, assignedTo: "5", status: "done", priority: "high", dueDate: "2026-03-20" },
+      { id: "3", title: "App development", completed: false, assignedTo: "2", status: "in-progress", priority: "medium", dueDate: "2026-04-01" },
+      { id: "4", title: "Testing", completed: false, status: "todo", priority: "low", dueDate: "2026-04-10" },
     ],
   },
   {
@@ -77,10 +77,10 @@ export const initialProjects: Project[] = [
       { id: "6", name: "Jessica Brown", email: "jessica@nexus.dev", role: "Data Analyst", avatar: "JB" },
     ],
     tasks: [
-      { id: "1", title: "Strategy planning", completed: true, status: "done", priority: "medium" },
-      { id: "2", title: "Content creation", completed: true, status: "done", priority: "low" },
-      { id: "3", title: "Campaign execution", completed: true, status: "done", priority: "high" },
-      { id: "4", title: "Performance analysis", completed: true, assignedTo: "6", status: "done", priority: "low" },
+      { id: "1", title: "Strategy planning", completed: true, status: "done", priority: "medium", dueDate: "2026-01-10" },
+      { id: "2", title: "Content creation", completed: true, status: "done", priority: "low", dueDate: "2026-01-15" },
+      { id: "3", title: "Campaign execution", completed: true, status: "done", priority: "high", dueDate: "2026-01-20" },
+      { id: "4", title: "Performance analysis", completed: true, assignedTo: "6", status: "done", priority: "low", dueDate: "2026-01-25" },
     ],
   },
   {
@@ -104,10 +104,10 @@ export const initialProjects: Project[] = [
       { id: "6", name: "Jessica Brown", email: "jessica@nexus.dev", role: "Data Analyst", avatar: "JB" },
     ],
     tasks: [
-      { id: "1", title: "Data audit", completed: true, status: "done", priority: "high" },
-      { id: "2", title: "Schema design", completed: true, status: "done", priority: "medium" },
-      { id: "3", title: "Migration scripts", completed: false, status: "in-progress", priority: "high" },
-      { id: "4", title: "Testing", completed: false, status: "todo", priority: "medium" },
+      { id: "1", title: "Data audit", completed: true, status: "done", priority: "high", dueDate: "2026-04-15" },
+      { id: "2", title: "Schema design", completed: true, status: "done", priority: "medium", dueDate: "2026-04-20" },
+      { id: "3", title: "Migration scripts", completed: false, status: "in-progress", priority: "high", dueDate: "2026-05-01" },
+      { id: "4", title: "Testing", completed: false, status: "todo", priority: "medium", dueDate: "2026-05-10" },
     ],
   },
   {

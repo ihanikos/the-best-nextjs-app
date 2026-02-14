@@ -50,6 +50,7 @@ import { CreateProjectDialog } from "./create-project-dialog";
 import { EditProjectDialog } from "./edit-project-dialog";
 import { ProjectDetailDialog } from "./project-detail-dialog";
 import { KanbanBoard } from "@/components/kanban-board";
+import { CalendarView } from "@/components/calendar-view";
 import { getStatusColor, getStatusBadgeVariant } from "@/lib/projects/data";
 import { toast } from "sonner";
 import { useNotifications } from "@/lib/notifications";
@@ -90,7 +91,7 @@ export default function ProjectsPage() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [viewingProject, setViewingProject] = useState<Project | null>(null);
-  const [viewMode, setViewMode] = useState<"list" | "kanban">("list");
+  const [viewMode, setViewMode] = useState<"list" | "kanban" | "calendar">("list");
   const [kanbanProjectId, setKanbanProjectId] = useState<string | null>(null);
 
   const activeProjects = projects.filter((p) => p.status === "active").length;
@@ -300,7 +301,7 @@ export default function ProjectsPage() {
         </div>
         <div className="flex gap-2">
           {/* View Mode Toggle */}
-          {viewMode === "kanban" && kanbanProject && (
+          {(viewMode === "kanban" || viewMode === "calendar") && (
             <Button
               variant="outline"
               size="sm"
@@ -329,7 +330,7 @@ export default function ProjectsPage() {
             <Button
               variant={viewMode === "kanban" ? "secondary" : "ghost"}
               size="sm"
-              className="rounded-l-none"
+              className="rounded-none"
               disabled={viewMode === "kanban" && !kanbanProject}
               onClick={() => {
                 if (projects.length > 0 && !kanbanProjectId) {
@@ -340,6 +341,18 @@ export default function ProjectsPage() {
             >
               <LayoutGrid className="mr-2 h-4 w-4" />
               Board
+            </Button>
+            <Button
+              variant={viewMode === "calendar" ? "secondary" : "ghost"}
+              size="sm"
+              className="rounded-l-none"
+              onClick={() => {
+                setViewMode("calendar");
+                setKanbanProjectId(null);
+              }}
+            >
+              <Calendar className="mr-2 h-4 w-4" />
+              Calendar
             </Button>
           </div>
           <Select
@@ -381,7 +394,26 @@ export default function ProjectsPage() {
       </motion.div>
 
       {/* View Mode Content */}
-      {viewMode === "kanban" && kanbanProject ? (
+      {viewMode === "calendar" ? (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="space-y-4"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-xl font-semibold">Calendar View</h2>
+              <p className="text-sm text-muted-foreground">
+                View projects and tasks by their due dates
+              </p>
+            </div>
+          </div>
+          <CalendarView
+            projects={projects}
+            onProjectClick={(project) => setViewingProject(project)}
+          />
+        </motion.div>
+      ) : viewMode === "kanban" && kanbanProject ? (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
