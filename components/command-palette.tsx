@@ -22,6 +22,10 @@ import {
   Sun,
   LogOut,
   Home,
+  CheckCircle,
+  User,
+  Briefcase,
+  Loader2,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import {
@@ -35,17 +39,8 @@ import { Kbd } from "@/components/ui/kbd"
 import { useProjects } from "@/lib/projects/use-projects"
 import { useTheme } from "next-themes"
 import { toast } from "sonner"
-
-interface SearchResult {
-  id: string
-  title: string
-  subtitle?: string
-  icon: React.ElementType
-  href?: string
-  action?: () => void
-  category: string
-  shortcut?: string
-}
+import { useSearch, highlightMatch, SearchResult } from "@/lib/hooks/use-search"
+import { availableTeamMembers } from "@/lib/projects/data"
 
 interface CommandPaletteProps {
   open: boolean
@@ -65,6 +60,11 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
   const inputRef = React.useRef<HTMLInputElement>(null)
   const listRef = React.useRef<HTMLDivElement>(null)
 
+  const { results, isSearching } = useSearch({
+    query,
+    maxResults: 15,
+  })
+
   // Load recent items from localStorage
   React.useEffect(() => {
     if (typeof window !== "undefined") {
@@ -79,7 +79,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
     }
   }, [])
 
-  // Save recent items to localStorage
+  // Save recent item to localStorage
   const saveRecentItem = React.useCallback((item: SearchResult) => {
     if (typeof window !== "undefined") {
       setRecentItems((prev) => {
@@ -91,89 +91,77 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
     }
   }, [])
 
-  // Build search results
-  const results = React.useMemo(() => {
+  // Build navigation and action items
+  const staticItems = React.useMemo(() => {
     const items: SearchResult[] = []
 
     // Navigation items
-    const navigationItems: SearchResult[] = [
+    items.push(
       {
         id: "nav-home",
         title: "Home",
         subtitle: "Go to landing page",
-        icon: Home,
-        href: "/",
+        type: "navigation",
         category: "Navigation",
+        href: "/",
       },
       {
         id: "nav-dashboard",
         title: "Dashboard",
         subtitle: "View your dashboard",
-        icon: LayoutDashboard,
-        href: "/dashboard",
+        type: "navigation",
         category: "Navigation",
+        href: "/dashboard",
       },
       {
         id: "nav-projects",
         title: "Projects",
         subtitle: "Manage your projects",
-        icon: FolderKanban,
-        href: "/projects",
+        type: "navigation",
         category: "Navigation",
+        href: "/projects",
       },
       {
         id: "nav-team",
         title: "Team",
         subtitle: "View team members",
-        icon: Users,
-        href: "/team",
+        type: "navigation",
         category: "Navigation",
+        href: "/team",
       },
       {
         id: "nav-analytics",
         title: "Analytics",
         subtitle: "View analytics and reports",
-        icon: BarChart3,
-        href: "/analytics",
+        type: "navigation",
         category: "Navigation",
+        href: "/analytics",
       },
       {
         id: "nav-notifications",
         title: "Notifications",
         subtitle: "View notifications",
-        icon: Bell,
-        href: "/notifications",
+        type: "navigation",
         category: "Navigation",
+        href: "/notifications",
       },
       {
         id: "nav-settings",
         title: "Settings",
         subtitle: "Configure your account",
-        icon: Settings,
-        href: "/settings",
+        type: "navigation",
         category: "Navigation",
-      },
-    ]
-    items.push(...navigationItems)
-
-    // Project items
-    const projectItems: SearchResult[] = projects.map((project) => ({
-      id: `project-${project.id}`,
-      title: project.name,
-      subtitle: project.description,
-      icon: FileText,
-      href: "/projects",
-      category: "Projects",
-    }))
-    items.push(...projectItems)
+        href: "/settings",
+      }
+    )
 
     // Quick Actions
-    const quickActions: SearchResult[] = [
+    items.push(
       {
         id: "action-create-project",
         title: "Create New Project",
         subtitle: "Start a new project",
-        icon: Plus,
+        type: "action",
         category: "Quick Actions",
         action: () => {
           const name = prompt("Enter project name:")
@@ -193,51 +181,59 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
         id: "action-toggle-theme",
         title: "Toggle Theme",
         subtitle: `Switch to ${theme === "dark" ? "light" : "dark"} mode`,
-        icon: theme === "dark" ? Sun : Moon,
+        type: "action",
         category: "Quick Actions",
         action: () => {
           setTheme(theme === "dark" ? "light" : "dark")
           toast.success(`Switched to ${theme === "dark" ? "light" : "dark"} mode`)
         },
-      },
-    ]
-    items.push(...quickActions)
-
-    // Filter by query
-    if (query.trim()) {
-      const lowerQuery = query.toLowerCase()
-      return items.filter(
-        (item) =>
-          item.title.toLowerCase().includes(lowerQuery) ||
-          item.subtitle?.toLowerCase().includes(lowerQuery) ||
-          item.category.toLowerCase().includes(lowerQuery)
-      )
-    }
-
-    // Show recent items first when no query
-    if (!query.trim() && recentItems.length > 0) {
-      const recentIds = new Set(recentItems.map((i) => i.id))
-      const filteredItems = items.filter((i) => !recentIds.has(i.id))
-      return [
-        ...recentItems.filter((item) => items.some((i) => i.id === item.id)),
-        ...filteredItems,
-      ]
-    }
+      }
+    )
 
     return items
-  }, [projects, query, recentItems, theme, createProject, setTheme])
+  }, [theme, createProject, setTheme])
+
+  // Combine and filter all results
+  const allResults = React.useMemo(() => {
+    if (!query.trim()) {
+      // Show recent items first when no query
+      if (recentItems.length > 0) {
+        const recentIds = new Set(recentItems.map((i) => i.id))
+        const filteredStatic = staticItems.filter((i) => !recentIds.has(i.id))
+        return [
+          ...recentItems.filter((item) => 
+            staticItems.some((i) => i.id === item.id) || 
+            results.some((r) => r.id === item.id)
+          ),
+          ...filteredStatic,
+        ]
+      }
+      return staticItems
+    }
+
+    // Filter static items by query
+    const lowerQuery = query.toLowerCase()
+    const filteredStatic = staticItems.filter(
+      (item) =>
+        item.title.toLowerCase().includes(lowerQuery) ||
+        item.subtitle?.toLowerCase().includes(lowerQuery)
+    )
+
+    // Combine with search results
+    return [...results, ...filteredStatic]
+  }, [results, staticItems, query, recentItems])
 
   // Group results by category
   const groupedResults = React.useMemo(() => {
     const groups: Record<string, SearchResult[]> = {}
-    results.forEach((item) => {
+    allResults.forEach((item) => {
       if (!groups[item.category]) {
         groups[item.category] = []
       }
       groups[item.category].push(item)
     })
     return groups
-  }, [results])
+  }, [allResults])
 
   // Get flat list for keyboard navigation
   const flatResults = React.useMemo(() => {
@@ -317,6 +313,48 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
     }
   }, [selectedIndex, open])
 
+  // Reset selected index when query changes
+  React.useEffect(() => {
+    setSelectedIndex(0)
+  }, [query])
+
+  const getIcon = (item: SearchResult) => {
+    switch (item.type) {
+      case "project":
+        return FolderKanban
+      case "task":
+        return CheckCircle
+      case "team":
+        return User
+      case "navigation":
+        switch (item.id) {
+          case "nav-home":
+            return Home
+          case "nav-dashboard":
+            return LayoutDashboard
+          case "nav-projects":
+            return FolderKanban
+          case "nav-team":
+            return Users
+          case "nav-analytics":
+            return BarChart3
+          case "nav-notifications":
+            return Bell
+          case "nav-settings":
+            return Settings
+          default:
+            return ArrowRight
+        }
+      case "action":
+        if (item.id === "action-toggle-theme") {
+          return theme === "dark" ? Sun : Moon
+        }
+        return Plus
+      default:
+        return FileText
+    }
+  }
+
   let currentIndex = 0
 
   return (
@@ -327,47 +365,63 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
           <Search className="mr-2 h-5 w-5 shrink-0 text-muted-foreground" />
           <Input
             ref={inputRef}
-            placeholder="Search projects, team, pages..."
+            placeholder="Search projects, team, tasks, pages..."
             className="flex h-14 border-0 bg-transparent text-base placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0"
             value={query}
             onChange={(e) => {
               setQuery(e.target.value)
-              setSelectedIndex(0)
             }}
+            aria-label="Search"
+            aria-autocomplete="list"
+            aria-controls="search-results"
+            aria-activedescendant={flatResults[selectedIndex]?.id}
           />
-          <Kbd variant="outline" size="sm" className="hidden sm:inline-flex">
-            ESC
-          </Kbd>
+          {isSearching ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin text-muted-foreground" />
+          ) : (
+            <Kbd variant="outline" size="sm" className="hidden sm:inline-flex">
+              ESC
+            </Kbd>
+          )}
         </div>
 
         <div
           ref={listRef}
+          id="search-results"
           className="max-h-[400px] overflow-y-auto p-2"
           role="listbox"
+          aria-label="Search results"
         >
           {flatResults.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <Search className="h-12 w-12 text-muted-foreground/50 mb-4" />
               <p className="text-sm text-muted-foreground">
-                No results found for &quot;{query}&quot;
+                {query.trim() 
+                  ? `No results found for "${query}"` 
+                  : "Start typing to search..."}
               </p>
             </div>
           ) : (
             Object.entries(groupedResults).map(([category, items]) => (
               <div key={category} className="mb-4 last:mb-0">
-                <h3 className="mb-2 px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                <h3 
+                  className="mb-2 px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider"
+                  aria-label={`${category} results`}
+                >
                   {category}
                 </h3>
                 <div className="space-y-1">
                   {items.map((item) => {
                     const index = currentIndex++
                     const isSelected = index === selectedIndex
-                    const Icon = item.icon
+                    const Icon = getIcon(item)
+                    const isRecent = recentItems.some((i) => i.id === item.id) && !query.trim()
 
                     return (
                       <motion.button
                         key={item.id}
                         data-index={index}
+                        id={item.id}
                         onClick={() => handleSelect(item)}
                         onMouseEnter={() => setSelectedIndex(index)}
                         className={cn(
@@ -394,18 +448,19 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
                             <span className="font-medium truncate">
-                              {item.title}
+                              {query.trim() 
+                                ? highlightMatch(item.title, query)
+                                : item.title}
                             </span>
-                            {recentItems.some((i) => i.id === item.id) &&
-                              !query.trim() && (
-                                <Badge
-                                  variant={isSelected ? "secondary" : "outline"}
-                                  className="text-[10px]"
-                                >
-                                  <Clock className="mr-1 h-3 w-3" />
-                                  Recent
-                                </Badge>
-                              )}
+                            {isRecent && (
+                              <Badge
+                                variant={isSelected ? "secondary" : "outline"}
+                                className="text-[10px]"
+                              >
+                                <Clock className="mr-1 h-3 w-3" />
+                                Recent
+                              </Badge>
+                            )}
                           </div>
                           {item.subtitle && (
                             <p
@@ -416,18 +471,12 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
                                   : "text-muted-foreground"
                               )}
                             >
-                              {item.subtitle}
+                              {query.trim() 
+                                ? highlightMatch(item.subtitle, query)
+                                : item.subtitle}
                             </p>
                           )}
                         </div>
-                        {item.shortcut && (
-                          <Kbd
-                            variant={isSelected ? "secondary" : "outline"}
-                            size="sm"
-                          >
-                            {item.shortcut}
-                          </Kbd>
-                        )}
                         {item.href && (
                           <ArrowRight
                             className={cn(
@@ -460,7 +509,14 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <span>{flatResults.length} results</span>
+            {isSearching ? (
+              <span className="flex items-center gap-1">
+                <Loader2 className="h-3 w-3 animate-spin" />
+                Searching...
+              </span>
+            ) : (
+              <span>{flatResults.length} results</span>
+            )}
           </div>
         </div>
       </DialogContent>
