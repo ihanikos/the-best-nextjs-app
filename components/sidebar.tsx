@@ -194,29 +194,31 @@ export function Sidebar({ className }: SidebarProps) {
           <Tooltip>
             <TooltipTrigger asChild>
               <div className="flex items-center gap-3 overflow-hidden">
-                <Avatar className="h-10 w-10 shrink-0 ring-2 ring-primary/20">
-                  <AvatarImage src={user?.avatar || ""} />
-                  <AvatarFallback>
-                    {user?.name?.split(" ").map((n) => n[0]).join("") || "U"}
-                  </AvatarFallback>
-                </Avatar>
-                <AnimatePresence mode="popLayout">
-                  {!collapsed && (
-                    <motion.div
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: -10 }}
-                      className="min-w-0 flex-1"
-                    >
-                      <p className="truncate text-sm font-medium">
-                        {user?.name || "User"}
-                      </p>
-                      <p className="truncate text-xs text-muted-foreground">
-                        {user?.email || ""}
-                      </p>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                <Link href="/profile" className="flex items-center gap-3 flex-1 min-w-0">
+                  <Avatar className="h-10 w-10 shrink-0 ring-2 ring-primary/20">
+                    <AvatarImage src={user?.avatar || ""} />
+                    <AvatarFallback>
+                      {user?.name?.split(" ").map((n) => n[0]).join("") || "U"}
+                    </AvatarFallback>
+                  </Avatar>
+                  <AnimatePresence mode="popLayout">
+                    {!collapsed && (
+                      <motion.div
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -10 }}
+                        className="min-w-0 flex-1"
+                      >
+                        <p className="truncate text-sm font-medium">
+                          {user?.name || "User"}
+                        </p>
+                        <p className="truncate text-xs text-muted-foreground">
+                          {user?.email || ""}
+                        </p>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </Link>
                 {!collapsed && (
                   <Button
                     variant="ghost"
