@@ -15,6 +15,9 @@ import {
   Camera,
   Palette,
   Globe,
+  Download,
+  Upload,
+  Database,
 } from "lucide-react";
 import {
   Card,
@@ -34,6 +37,9 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ModeToggle } from "@/components/mode-toggle";
 import { toast } from "sonner";
+import { DataExportImportDialog } from "@/components/data-export-import-dialog";
+import { useProjects } from "@/lib/projects/use-projects";
+import { Project, TeamMember } from "@/lib/projects/types";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -62,6 +68,8 @@ export default function SettingsPage() {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isDataDialogOpen, setIsDataDialogOpen] = useState(false);
+  const { projects, availableTeamMembers } = useProjects();
 
   const [profileData, setProfileData] = useState({
     firstName: "Alex",
@@ -161,7 +169,7 @@ export default function SettingsPage() {
         className="p-8"
       >
         <Tabs defaultValue="profile" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 lg:w-[600px]">
+          <TabsList className="grid w-full grid-cols-5 lg:w-[750px]">
             <TabsTrigger value="profile" className="gap-2">
               <User className="h-4 w-4" />
               Profile
@@ -177,6 +185,10 @@ export default function SettingsPage() {
             <TabsTrigger value="security" className="gap-2">
               <Shield className="h-4 w-4" />
               Security
+            </TabsTrigger>
+            <TabsTrigger value="data" className="gap-2">
+              <Database className="h-4 w-4" />
+              Data
             </TabsTrigger>
           </TabsList>
 
@@ -770,8 +782,72 @@ export default function SettingsPage() {
               </Card>
             </motion.div>
           </TabsContent>
+
+          <TabsContent value="data" className="space-y-6">
+            <motion.div variants={itemVariants}>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Data Export & Import</CardTitle>
+                  <CardDescription>
+                    Export your data for backup or import data from other sources
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div className="flex items-start gap-4 rounded-lg border p-4">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                        <Download className="h-5 w-5 text-primary" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-medium">Export Data</p>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          Download a backup of your projects and team data
+                        </p>
+                        <div className="mt-3 flex gap-2 text-sm text-muted-foreground">
+                          <Badge variant="secondary">{projects.length} Projects</Badge>
+                          <Badge variant="secondary">{availableTeamMembers.length} Members</Badge>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-4 rounded-lg border p-4">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10">
+                        <Upload className="h-5 w-5 text-emerald-500" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-medium">Import Data</p>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          Import projects and team members from JSON or CSV files
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-2">
+                          Supports Nexus JSON exports and CSV files
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end">
+                    <Button
+                      onClick={() => setIsDataDialogOpen(true)}
+                      className="gap-2"
+                    >
+                      <Database className="h-4 w-4" />
+                      Open Data Manager
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          </TabsContent>
         </Tabs>
       </motion.div>
+
+      <DataExportImportDialog
+        open={isDataDialogOpen}
+        onOpenChange={setIsDataDialogOpen}
+        projects={projects}
+        teamMembers={availableTeamMembers}
+      />
     </div>
   );
 }
