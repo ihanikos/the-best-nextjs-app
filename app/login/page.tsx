@@ -128,10 +128,27 @@ function LoginForm() {
                 )}
               </Button>
 
-              <div className="text-center text-sm text-muted-foreground">
-                <p>Demo credentials:</p>
-                <p>Email: admin@nexus.dev</p>
-                <p>Password: password123</p>
+              <div className="rounded-lg bg-muted/50 p-4 text-sm">
+                <p className="font-semibold mb-2">Demo Accounts:</p>
+                <div className="space-y-2 text-muted-foreground">
+                  <div className="flex justify-between">
+                    <span>admin@nexus.dev</span>
+                    <span className="text-red-500 font-medium">Admin</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>manager@nexus.dev</span>
+                    <span className="text-blue-500 font-medium">Manager</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>member@nexus.dev</span>
+                    <span className="text-green-500 font-medium">Member</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>viewer@nexus.dev</span>
+                    <span className="text-gray-500 font-medium">Viewer</span>
+                  </div>
+                  <p className="text-xs pt-1">Password: password123</p>
+                </div>
               </div>
             </form>
           </CardContent>

@@ -19,12 +19,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
+import { UserRole, ROLE_INFO, getAllRoles } from "@/lib/auth/roles";
 
 export interface TeamMember {
   id: number;
   name: string;
   email: string;
-  role: string;
+  role: UserRole;
   status: "active" | "offline";
   avatar: string;
   lastActive: string;
@@ -43,11 +44,18 @@ export function AddTeamMemberDialog({
   onOpenChange,
   onSubmit,
 }: AddTeamMemberDialogProps) {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    name: string;
+    email: string;
+    role: UserRole | "";
+    status: "active" | "offline";
+    location: string;
+    avatar: string;
+  }>({
     name: "",
     email: "",
     role: "",
-    status: "active" as "active" | "offline",
+    status: "active",
     location: "",
     avatar: "",
   });
@@ -185,24 +193,22 @@ export function AddTeamMemberDialog({
             <Select
               value={formData.role}
               onValueChange={(value) =>
-                setFormData({ ...formData, role: value })
+                setFormData({ ...formData, role: value as UserRole })
               }
             >
               <SelectTrigger
+                id="role"
                 aria-invalid={!!errors.role}
                 aria-describedby={errors.role ? "role-error" : undefined}
               >
                 <SelectValue placeholder="Select a role" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Product Manager">Product Manager</SelectItem>
-                <SelectItem value="Senior Developer">Senior Developer</SelectItem>
-                <SelectItem value="UX Designer">UX Designer</SelectItem>
-                <SelectItem value="Marketing Lead">Marketing Lead</SelectItem>
-                <SelectItem value="Backend Developer">Backend Developer</SelectItem>
-                <SelectItem value="Data Analyst">Data Analyst</SelectItem>
-                <SelectItem value="Frontend Developer">Frontend Developer</SelectItem>
-                <SelectItem value="DevOps Engineer">DevOps Engineer</SelectItem>
+                {getAllRoles().map((role) => (
+                  <SelectItem key={role} value={role}>
+                    {ROLE_INFO[role].label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
             {errors.role && (
