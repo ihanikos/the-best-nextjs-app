@@ -7,6 +7,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { AuthProvider } from "@/lib/auth";
 import { NotificationProvider } from "@/lib/notifications";
 import { CommandPaletteProvider } from "@/components/command-palette-provider";
+import { ActivityProvider } from "@/lib/activity";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -47,13 +48,15 @@ export default function RootLayout({
           disableTransitionOnChange={false}
         >
           <AuthProvider>
-            <NotificationProvider>
-              <CommandPaletteProvider>
-                {children}
-                <Toaster />
-                <Sonner position="bottom-right" richColors />
-              </CommandPaletteProvider>
-            </NotificationProvider>
+            <ActivityProvider>
+              <NotificationProvider>
+                <CommandPaletteProvider>
+                  {children}
+                  <Toaster />
+                  <Sonner position="bottom-right" richColors />
+                </CommandPaletteProvider>
+              </NotificationProvider>
+            </ActivityProvider>
           </AuthProvider>
         </ThemeProvider>
       </body>
