@@ -247,7 +247,7 @@ export function AddTeamMemberDialog({
                 setFormData({ ...formData, status: value as "active" | "offline" })
               }
             >
-              <SelectTrigger>
+              <SelectTrigger id="status">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
