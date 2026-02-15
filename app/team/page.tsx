@@ -43,12 +43,17 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { AddTeamMemberDialog } from "./add-team-member-dialog";
+import { useAuth } from "@/lib/auth";
+
+import { UserRole, ROLE_INFO, PERMISSIONS } from "@/lib/auth/roles";
+import { PermissionGuard } from "@/components/permission-guard";
+import { RoleManagementDialog } from "./role-management-dialog";
 
 export interface TeamMember {
   id: number;
   name: string;
   email: string;
-  role: string;
+  role: UserRole;
   status: "active" | "offline";
   avatar: string;
   lastActive: string;
@@ -61,7 +66,7 @@ const initialTeamMembers: TeamMember[] = [
     id: 1,
     name: "Alex Chen",
     email: "alex@nexus.dev",
-    role: "Product Manager",
+    role: "admin",
     status: "active",
     avatar: "AC",
     lastActive: "2 minutes ago",
@@ -72,7 +77,7 @@ const initialTeamMembers: TeamMember[] = [
     id: 2,
     name: "Sarah Johnson",
     email: "sarah@nexus.dev",
-    role: "Senior Developer",
+    role: "manager",
     status: "active",
     avatar: "SJ",
     lastActive: "15 minutes ago",
@@ -83,7 +88,7 @@ const initialTeamMembers: TeamMember[] = [
     id: 3,
     name: "Mike Williams",
     email: "mike@nexus.dev",
-    role: "UX Designer",
+    role: "member",
     status: "active",
     avatar: "MW",
     lastActive: "1 hour ago",
@@ -94,7 +99,7 @@ const initialTeamMembers: TeamMember[] = [
     id: 4,
     name: "Emily Davis",
     email: "emily@nexus.dev",
-    role: "Marketing Lead",
+    role: "member",
     status: "active",
     avatar: "ED",
     lastActive: "3 hours ago",
@@ -105,7 +110,7 @@ const initialTeamMembers: TeamMember[] = [
     id: 5,
     name: "Tom Wilson",
     email: "tom@nexus.dev",
-    role: "Backend Developer",
+    role: "viewer",
     status: "offline",
     avatar: "TW",
     lastActive: "1 day ago",
@@ -116,7 +121,7 @@ const initialTeamMembers: TeamMember[] = [
     id: 6,
     name: "Jessica Brown",
     email: "jessica@nexus.dev",
-    role: "Data Analyst",
+    role: "member",
     status: "active",
     avatar: "JB",
     lastActive: "30 minutes ago",
@@ -126,8 +131,13 @@ const initialTeamMembers: TeamMember[] = [
 ];
 
 export default function TeamPage() {
+  const { user } = useAuth();
+  const userRole = user?.role || null;
+
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>(initialTeamMembers);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isRoleDialogOpen, setIsRoleDialogOpen] = useState(false);
+  const [selectedMember, setSelectedMember] = useState<TeamMember | null>(null);
 
   const handleAddMember = (
     newMember: Omit<TeamMember, "id" | "lastActive" | "projects">
@@ -141,6 +151,25 @@ export default function TeamPage() {
     setTeamMembers((prev) => [...prev, member]);
   };
 
+  const handleEditRole = (member: TeamMember) => {
+    setSelectedMember(member);
+    setIsRoleDialogOpen(true);
+  };
+
+  const handleRoleChange = (newRole: UserRole) => {
+    if (selectedMember) {
+      setTeamMembers((prev) =>
+        prev.map((m) =>
+          m.id === selectedMember.id ? { ...m, role: newRole } : m
+        )
+      );
+    }
+  };
+
+  const handleRemoveMember = (memberId: number) => {
+    setTeamMembers((prev) => prev.filter((m) => m.id !== memberId));
+  };
+
   const activeMembers = teamMembers.filter((m) => m.status === "active").length;
 
   return (
@@ -152,10 +181,12 @@ export default function TeamPage() {
             Manage your team members and their roles
           </p>
         </div>
-        <Button className="gap-2" onClick={() => setIsAddDialogOpen(true)}>
-          <Plus className="h-4 w-4" />
-          Add Member
-        </Button>
+        <PermissionGuard userRole={userRole} permission={PERMISSIONS.USER_INVITE}>
+          <Button className="gap-2" onClick={() => setIsAddDialogOpen(true)}>
+            <Plus className="h-4 w-4" />
+            Add Member
+          </Button>
+        </PermissionGuard>
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
@@ -257,7 +288,14 @@ export default function TeamPage() {
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell>{member.role}</TableCell>
+                      <TableCell>
+                        <Badge
+                          variant="secondary"
+                          className={`${ROLE_INFO[member.role].color} text-white`}
+                        >
+                          {ROLE_INFO[member.role].label}
+                        </Badge>
+                      </TableCell>
                       <TableCell>
                         <Badge
                           variant={
@@ -283,11 +321,30 @@ export default function TeamPage() {
                             <DropdownMenuSeparator />
                             <DropdownMenuItem>View Profile</DropdownMenuItem>
                             <DropdownMenuItem>Send Message</DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem>Edit Role</DropdownMenuItem>
-                            <DropdownMenuItem className="text-destructive">
-                              Remove
-                            </DropdownMenuItem>
+                            <PermissionGuard
+                              userRole={userRole}
+                              permission={PERMISSIONS.TEAM_MANAGE_ROLES}
+                            >
+                              <>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
+                                  onClick={() => handleEditRole(member)}
+                                >
+                                  Edit Role
+                                </DropdownMenuItem>
+                              </>
+                            </PermissionGuard>
+                            <PermissionGuard
+                              userRole={userRole}
+                              permission={PERMISSIONS.USER_REMOVE}
+                            >
+                              <DropdownMenuItem
+                                className="text-destructive"
+                                onClick={() => handleRemoveMember(member.id)}
+                              >
+                                Remove
+                              </DropdownMenuItem>
+                            </PermissionGuard>
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </TableCell>
@@ -325,7 +382,7 @@ export default function TeamPage() {
                   <div className="flex-1">
                     <p className="font-medium">{member.name}</p>
                     <p className="text-sm text-muted-foreground">
-                      {member.role} • {member.location}
+                      {ROLE_INFO[member.role].label} • {member.location}
                     </p>
                   </div>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -344,6 +401,17 @@ export default function TeamPage() {
         onOpenChange={setIsAddDialogOpen}
         onSubmit={handleAddMember}
       />
+
+      {selectedMember && (
+        <RoleManagementDialog
+          open={isRoleDialogOpen}
+          onOpenChange={setIsRoleDialogOpen}
+          memberName={selectedMember.name}
+          memberEmail={selectedMember.email}
+          currentRole={selectedMember.role}
+          onRoleChange={handleRoleChange}
+        />
+      )}
     </div>
   );
 }

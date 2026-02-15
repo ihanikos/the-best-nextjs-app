@@ -13,13 +13,14 @@ Object.defineProperty(window, "localStorage", {
 });
 
 function TestComponent() {
-  const { user, isAuthenticated, isLoading, login, logout, error, clearError } = useAuth();
+  const { user, isAuthenticated, isLoading, login, logout, error, clearError, updateUserRole } = useAuth();
 
   return (
     <div>
       <div data-testid="loading">{isLoading ? "loading" : "not-loading"}</div>
       <div data-testid="authenticated">{isAuthenticated ? "true" : "false"}</div>
       <div data-testid="user">{user ? user.name : "no-user"}</div>
+      <div data-testid="user-role">{user ? user.role : "no-role"}</div>
       <div data-testid="error">{error || "no-error"}</div>
       <button
         data-testid="login-btn"
@@ -27,12 +28,26 @@ function TestComponent() {
       >
         Login
       </button>
+      <button
+        data-testid="login-manager-btn"
+        onClick={() => login("manager@nexus.dev", "password123")}
+      >
+        Login Manager
+      </button>
       <button data-testid="logout-btn" onClick={logout}>
         Logout
       </button>
       <button data-testid="clear-error-btn" onClick={clearError}>
         Clear Error
       </button>
+      {user && (
+        <button
+          data-testid="change-role-btn"
+          onClick={() => updateUserRole(user.id, "manager")}
+        >
+          Change Role
+        </button>
+      )}
     </div>
   );
 }
@@ -78,7 +93,24 @@ describe("AuthContext", () => {
       expect(screen.getByTestId("authenticated")).toHaveTextContent("true");
     });
     expect(screen.getByTestId("user")).toHaveTextContent("Admin User");
+    expect(screen.getByTestId("user-role")).toHaveTextContent("admin");
     expect(mockLocalStorage.setItem).toHaveBeenCalled();
+  });
+
+  it("should login with manager credentials and have manager role", async () => {
+    renderWithProvider();
+    await waitFor(() => {
+      expect(screen.getByTestId("loading")).toHaveTextContent("not-loading");
+    });
+
+    const loginBtn = screen.getByTestId("login-manager-btn");
+    await userEvent.click(loginBtn);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("authenticated")).toHaveTextContent("true");
+    });
+    expect(screen.getByTestId("user")).toHaveTextContent("Manager User");
+    expect(screen.getByTestId("user-role")).toHaveTextContent("manager");
   });
 
   it("should show error with incorrect credentials", async () => {
@@ -189,6 +221,7 @@ describe("AuthContext", () => {
       id: "1",
       email: "test@test.com",
       name: "Test User",
+      role: "admin",
     };
     mockLocalStorage.getItem.mockReturnValue(JSON.stringify({ user: storedUser }));
 
@@ -199,6 +232,7 @@ describe("AuthContext", () => {
           <div data-testid="loading">{isLoading ? "loading" : "not-loading"}</div>
           <div data-testid="authenticated">{isAuthenticated ? "true" : "false"}</div>
           <div data-testid="user">{user?.name || "no-user"}</div>
+          <div data-testid="role">{user?.role || "no-role"}</div>
         </div>
       );
     };
@@ -215,6 +249,27 @@ describe("AuthContext", () => {
 
     expect(getByTestId("authenticated")).toHaveTextContent("true");
     expect(getByTestId("user")).toHaveTextContent("Test User");
+    expect(getByTestId("role")).toHaveTextContent("admin");
+  });
+
+  it("should update user role", async () => {
+    renderWithProvider();
+    await waitFor(() => {
+      expect(screen.getByTestId("loading")).toHaveTextContent("not-loading");
+    });
+
+    // Login first
+    await userEvent.click(screen.getByTestId("login-btn"));
+    await waitFor(() => {
+      expect(screen.getByTestId("authenticated")).toHaveTextContent("true");
+    });
+    expect(screen.getByTestId("user-role")).toHaveTextContent("admin");
+
+    // Change role
+    await userEvent.click(screen.getByTestId("change-role-btn"));
+    await waitFor(() => {
+      expect(screen.getByTestId("user-role")).toHaveTextContent("manager");
+    });
   });
 });
 

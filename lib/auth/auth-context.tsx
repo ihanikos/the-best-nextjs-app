@@ -1,12 +1,14 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { UserRole } from "./roles";
 
 export interface User {
   id: string;
   email: string;
   name: string;
   avatar?: string;
+  role: UserRole;
 }
 
 export interface AuthState {
@@ -20,19 +22,42 @@ export interface AuthContextType extends AuthState {
   logout: () => void;
   error: string | null;
   clearError: () => void;
+  updateUserRole: (userId: string, newRole: UserRole) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const STORAGE_KEY = "nexus_auth";
+const USERS_STORAGE_KEY = "nexus_users";
 
-// Demo user for testing
-const DEMO_USER: User = {
-  id: "1",
-  email: "admin@nexus.dev",
-  name: "Admin User",
-  avatar: "https://github.com/shadcn.png",
-};
+// Demo users for testing with different roles
+const DEMO_USERS: User[] = [
+  {
+    id: "1",
+    email: "admin@nexus.dev",
+    name: "Admin User",
+    avatar: "https://github.com/shadcn.png",
+    role: "admin",
+  },
+  {
+    id: "2",
+    email: "manager@nexus.dev",
+    name: "Manager User",
+    role: "manager",
+  },
+  {
+    id: "3",
+    email: "member@nexus.dev",
+    name: "Team Member",
+    role: "member",
+  },
+  {
+    id: "4",
+    email: "viewer@nexus.dev",
+    name: "Viewer User",
+    role: "viewer",
+  },
+];
 
 const DEMO_PASSWORD = "password123";
 
@@ -42,12 +67,24 @@ interface AuthProviderProps {
 
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
+  const [users, setUsers] = useState<User[]>(DEMO_USERS);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   // Check for existing auth on mount
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
+    const storedUsers = localStorage.getItem(USERS_STORAGE_KEY);
+    
+    if (storedUsers) {
+      try {
+        const parsed = JSON.parse(storedUsers);
+        setUsers(parsed);
+      } catch {
+        localStorage.removeItem(USERS_STORAGE_KEY);
+      }
+    }
+    
     if (stored) {
       try {
         const parsed = JSON.parse(stored);
@@ -61,6 +98,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setIsLoading(false);
   }, []);
 
+  // Persist users when they change
+  useEffect(() => {
+    localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(users));
+  }, [users]);
+
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     setError(null);
@@ -68,10 +110,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
     // Simulate API call
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
-    // Demo authentication
-    if (email === DEMO_USER.email && password === DEMO_PASSWORD) {
-      setUser(DEMO_USER);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ user: DEMO_USER }));
+    // Demo authentication with role-based users
+    const foundUser = users.find((u) => u.email === email);
+    
+    if (foundUser && password === DEMO_PASSWORD) {
+      setUser(foundUser);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ user: foundUser }));
     } else {
       setError("Invalid email or password");
       throw new Error("Invalid credentials");
@@ -89,6 +133,19 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setError(null);
   };
 
+  const updateUserRole = (userId: string, newRole: UserRole) => {
+    setUsers((prev) =>
+      prev.map((u) => (u.id === userId ? { ...u, role: newRole } : u))
+    );
+    
+    // If updating current user, update them too
+    if (user && user.id === userId) {
+      const updatedUser = { ...user, role: newRole };
+      setUser(updatedUser);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ user: updatedUser }));
+    }
+  };
+
   const value: AuthContextType = {
     user,
     isAuthenticated: !!user,
@@ -97,6 +154,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     logout,
     error,
     clearError,
+    updateUserRole,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
@@ -108,4 +166,22 @@ export function useAuth(): AuthContextType {
     throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
+}
+
+// Hook to get all users (for admin/manager role management)
+export function useUsers(): User[] {
+  const [users, setUsers] = useState<User[]>(DEMO_USERS);
+  
+  useEffect(() => {
+    const stored = localStorage.getItem(USERS_STORAGE_KEY);
+    if (stored) {
+      try {
+        setUsers(JSON.parse(stored));
+      } catch {
+        // Keep default users
+      }
+    }
+  }, []);
+  
+  return users;
 }
