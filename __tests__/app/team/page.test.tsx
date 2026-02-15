@@ -19,14 +19,29 @@ jest.mock('framer-motion', () => ({
   },
 }))
 
+// Mock useAuth hook
+jest.mock('@/lib/auth', () => ({
+  useAuth: () => ({
+    user: {
+      id: '1',
+      email: 'admin@nexus.dev',
+      name: 'Admin User',
+      role: 'admin',
+    },
+    isAuthenticated: true,
+    isLoading: false,
+    login: jest.fn(),
+    logout: jest.fn(),
+    error: null,
+    clearError: jest.fn(),
+    updateUserRole: jest.fn(),
+  }),
+  AuthProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+}))
+
 describe('TeamPage', () => {
   beforeEach(() => {
     jest.clearAllMocks()
-    jest.useFakeTimers()
-  })
-
-  afterEach(() => {
-    jest.useRealTimers()
   })
 
   it('renders team page with header', () => {
@@ -119,13 +134,10 @@ describe('TeamPage', () => {
     const submitBtn = screen.getByRole('button', { name: /add member/i })
     await userEvent.click(submitBtn)
     
-    // Wait for async operations
-    jest.advanceTimersByTime(500)
-    
-    // Dialog should close
+    // Dialog should close (wait for async submit)
     await waitFor(() => {
       expect(screen.queryByText('Add Team Member')).not.toBeInTheDocument()
-    })
+    }, { timeout: 3000 })
     
     // New member should appear in the list
     await waitFor(() => {
@@ -137,7 +149,7 @@ describe('TeamPage', () => {
       const totalMembersElements = screen.getAllByText('7')
       expect(totalMembersElements.length).toBeGreaterThan(0)
     })
-  })
+  }, 15000)
 
   it('updates active members count when adding active member', async () => {
     render(<TeamPage />)
@@ -161,14 +173,12 @@ describe('TeamPage', () => {
     const submitBtn = screen.getByRole('button', { name: /add member/i })
     await userEvent.click(submitBtn)
     
-    jest.advanceTimersByTime(500)
-    
     // Active count should update (was 5, now should be 6)
     await waitFor(() => {
       const activeElements = screen.getAllByText('6')
       expect(activeElements.length).toBeGreaterThan(0)
-    })
-  })
+    }, { timeout: 3000 })
+  }, 15000)
 
   it('renders team activity section', () => {
     render(<TeamPage />)
@@ -205,13 +215,11 @@ describe('TeamPage', () => {
     const submitBtn = screen.getByRole('button', { name: /add member/i })
     await userEvent.click(submitBtn)
     
-    jest.advanceTimersByTime(500)
-    
     // New member should be added successfully
     await waitFor(() => {
       expect(screen.getByText('Test User')).toBeInTheDocument()
-    })
-  })
+    }, { timeout: 3000 })
+  }, 15000)
 
   it('sets correct default values for new member', async () => {
     render(<TeamPage />)
@@ -233,14 +241,12 @@ describe('TeamPage', () => {
     const submitBtn = screen.getByRole('button', { name: /add member/i })
     await userEvent.click(submitBtn)
     
-    jest.advanceTimersByTime(500)
-    
     // New member should appear with correct role and location
     await waitFor(() => {
       expect(screen.getByText('Bob Wilson')).toBeInTheDocument()
       expect(screen.getByText('Data Analyst')).toBeInTheDocument()
-    })
-  })
+    }, { timeout: 3000 })
+  }, 15000)
 
   it('shows percentage calculation in Active Now card', () => {
     render(<TeamPage />)

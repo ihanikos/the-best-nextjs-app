@@ -1,5 +1,5 @@
 import React from 'react'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { AddTeamMemberDialog } from '@/app/team/add-team-member-dialog'
 
@@ -19,11 +19,6 @@ describe('AddTeamMemberDialog', () => {
 
   beforeEach(() => {
     jest.clearAllMocks()
-    jest.useFakeTimers()
-  })
-
-  afterEach(() => {
-    jest.useRealTimers()
   })
 
   const renderDialog = (props = {}) => {
@@ -166,9 +161,7 @@ describe('AddTeamMemberDialog', () => {
     const submitBtn = screen.getByRole('button', { name: /add member/i })
     await userEvent.click(submitBtn)
     
-    // Wait for async operations
-    jest.advanceTimersByTime(500)
-    
+    // Wait for the async submit (500ms timeout in component)
     await waitFor(() => {
       expect(mockOnSubmit).toHaveBeenCalledWith({
         name: 'John Doe',
@@ -178,7 +171,7 @@ describe('AddTeamMemberDialog', () => {
         location: 'New York, NY',
         avatar: 'JD',
       })
-    })
+    }, { timeout: 3000 })
     
     expect(toast.success).toHaveBeenCalledWith('Team member "John Doe" added successfully')
     expect(mockOnOpenChange).toHaveBeenCalledWith(false)
@@ -199,15 +192,13 @@ describe('AddTeamMemberDialog', () => {
     const submitBtn = screen.getByRole('button', { name: /add member/i })
     await userEvent.click(submitBtn)
     
-    jest.advanceTimersByTime(500)
-    
     await waitFor(() => {
       expect(mockOnSubmit).toHaveBeenCalledWith(
         expect.objectContaining({
           avatar: 'MJ',
         })
       )
-    })
+    }, { timeout: 3000 })
   })
 
   it('allows changing status to offline', async () => {
@@ -234,15 +225,13 @@ describe('AddTeamMemberDialog', () => {
     const submitBtn = screen.getByRole('button', { name: /add member/i })
     await userEvent.click(submitBtn)
     
-    jest.advanceTimersByTime(500)
-    
     await waitFor(() => {
       expect(mockOnSubmit).toHaveBeenCalledWith(
         expect.objectContaining({
           status: 'offline',
         })
       )
-    })
+    }, { timeout: 3000 })
   })
 
   it('shows loading state during submission', async () => {
@@ -286,12 +275,10 @@ describe('AddTeamMemberDialog', () => {
     const submitBtn = screen.getByRole('button', { name: /add member/i })
     await userEvent.click(submitBtn)
     
-    jest.advanceTimersByTime(500)
-    
     // Dialog should close, so we check the onOpenChange was called
     await waitFor(() => {
       expect(mockOnOpenChange).toHaveBeenCalledWith(false)
-    })
+    }, { timeout: 3000 })
   })
 
   it('resets form and errors when dialog is reopened', async () => {
