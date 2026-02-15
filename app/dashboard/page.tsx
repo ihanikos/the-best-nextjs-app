@@ -10,7 +10,6 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   Bell,
-  Calendar,
 } from "lucide-react";
 import { useNotifications } from "@/lib/notifications";
 import {
@@ -25,6 +24,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ModeToggle } from "@/components/mode-toggle";
+import { ActivityFeedCard } from "@/components/activity-feed";
 import {
   AreaChart,
   Area,
@@ -94,37 +94,6 @@ const categoryData = [
   { name: "Desktop", value: 65, color: "hsl(var(--primary))" },
   { name: "Mobile", value: 25, color: "hsl(var(--chart-2))" },
   { name: "Tablet", value: 10, color: "hsl(var(--chart-3))" },
-];
-
-const recentActivity = [
-  {
-    id: 1,
-    user: "Sarah Chen",
-    action: "completed onboarding",
-    time: "2 minutes ago",
-    avatar: "SC",
-  },
-  {
-    id: 2,
-    user: "Mike Johnson",
-    action: "upgraded to Pro plan",
-    time: "15 minutes ago",
-    avatar: "MJ",
-  },
-  {
-    id: 3,
-    user: "Emily Davis",
-    action: "invited 3 team members",
-    time: "1 hour ago",
-    avatar: "ED",
-  },
-  {
-    id: 4,
-    user: "Tom Wilson",
-    action: "created new project",
-    time: "2 hours ago",
-    avatar: "TW",
-  },
 ];
 
 const containerVariants = {
@@ -335,43 +304,9 @@ export default function DashboardPage() {
 
         {/* Bottom Section */}
         <div className="grid gap-4 lg:grid-cols-2">
-          {/* Recent Activity */}
+          {/* Recent Activity Feed */}
           <motion.div variants={itemVariants}>
-            <Card>
-              <CardHeader>
-                <CardTitle>Recent Activity</CardTitle>
-                <CardDescription>Latest actions from your team</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {recentActivity.map((activity, index) => (
-                  <motion.div
-                    key={activity.id}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    className="flex items-center gap-4"
-                  >
-                    <Avatar className="h-9 w-9">
-                      <AvatarFallback className="bg-primary/10 text-primary">
-                        {activity.avatar}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 space-y-1">
-                      <p className="text-sm font-medium leading-none">
-                        {activity.user}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        {activity.action}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <Calendar className="h-3 w-3" />
-                      {activity.time}
-                    </div>
-                  </motion.div>
-                ))}
-              </CardContent>
-            </Card>
+            <ActivityFeedCard limit={5} />
           </motion.div>
 
           {/* Goals Progress */}

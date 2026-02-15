@@ -16,6 +16,7 @@ import {
   LogOut,
   ChevronRight,
   Sparkles,
+  Activity,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -38,6 +39,7 @@ const navigation = [
   { name: "Analytics", href: "/analytics", icon: BarChart3 },
   { name: "Projects", href: "/projects", icon: FolderKanban },
   { name: "Team", href: "/team", icon: Users },
+  { name: "Activity", href: "/activity", icon: Activity },
   { name: "Notifications", href: "/notifications", icon: Bell },
   { name: "Settings", href: "/settings", icon: Settings },
 ];
